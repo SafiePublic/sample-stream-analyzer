@@ -1,0 +1,262 @@
+syntax = "proto3";
+package safie.analyzer.stream.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+service StreamAnalyzerService {
+    // RPCメタデータ:
+    // Client -> Server
+    // - `request_id`: 要求のトレースに用いられる文字列
+    // - `device_id`: 映像が撮影されたデバイスの識別子
+    // - `stream.video_type`: 動画種別, `H264`/`none` (動画なし)
+    // - `stream.video_width`: 動画の横画素数
+    // - `stream.video_height`: 動画の縦画素数
+    // - `stream.video_frame_rate`: 動画のFPS, 浮動小数点数の文字列表現
+    // - `stream.audio_type`: 音声種別, `AAC`/`none` (音声なし)
+    // - `stream.audio_sample_bits`: 音声サンプルサイズ, `8`/`16`/`24`/`32` 等
+    // - `stream.audio_sample_rate`: 音声サンプルレート, `44100` 等
+    // - `stream.audio_channels`: 音声チャンネル数
+    // - `context`: StreamAnalyzeResponse.UpdateContextで設定されたstructをJSON形式にしたものがメタデータのvalueとして設定されます。
+    // - `parameter`: ユーザーおよびディベロッパーが設定した任意のパラメータ。設定されたJSONがメタデータのvalueとして設定されます。
+    //                JSONの最上位のキーは、`user_config`と`developer_config`の二つであり、それぞれユーザー、ディベロッパーの設定値が格納されます。
+    //                `user_config`の中には、ユーザーが設定したジオメトリ設定の情報が`geometries`キーで格納されます。
+    // Server -> Client initial metadata
+    // - `analyzer_version`: Analyzerのバージョン
+    rpc AnalyzeStream(stream StreamAnalyzeRequest) returns (stream StreamAnalyzeResponse);
+}
+
+message StreamAnalyzeRequest {
+    MediaFrame media_frame = 1;
+
+    message MediaFrame {
+        // フレーム画像の表示時刻
+        // 1970-01-01 00:00:00 UTC からの経過時間, 1/90,000秒単位
+        uint64 pts = 1;
+
+        // フレーム画像のデコード時刻
+        // 1970-01-01 00:00:00 UTC からの経過時間, 1/90,000秒単位
+        uint64 dts = 2;
+
+        // パケット種別、ビットフィールド
+        //
+        // | byte | bit |
+        // |------|-----|-------
+        // |  3~1 |     | 未使用
+        // |    0 |   7 | 0: 非キーフレーム, 1: キーフレーム
+        // |    0 | 6~0 | 0: H264パケット, 1: AACパケット
+        //
+        // 上位バイト 3 - 0 下位バイト
+        // MSB 7 - 0 LSB
+        uint32 type = 3;
+
+        // H264パケットまたはAACパケット
+        bytes data = 4;
+    }
+}
+
+message StreamAnalyzeResponse {
+    oneof payload {
+        RecordMetrics record_metrics = 1;
+        RecordEvent record_event = 2;
+        RecordObject record_object = 3;
+        RecordDeviceStatus record_device_status = 4;
+        UpdateContext update_context = 5;
+    }
+
+    // メトリクス
+
+    // 時刻と値の組で表現される時系列データを保存できます。
+
+    // 各時系列データには16文字以内の文字列で表されるラベル（label）を付与でき、
+    // このラベルによって区別された複数種類の時系列データを保存することができます。
+    // 時系列データは、保存時に5分毎、1時間毎、1日毎にダウンサンプリングされるため、
+    // 保存された時系列データから特定の時刻のデータのみを取得することはできません。
+    // 時系列データは、保存時に時間方向に集計処理が適用され、サポートしている統計値は、
+    // 値の個数 (count)、総和 (sum)、平均値 (avg)、最小値 (min), 最大値 (max) 、null値を0と扱う平均値（avg0）。
+    // 平均値は総和/個数で計算されます。
+    message RecordMetrics {
+        // このデータが取得された時刻です
+        .google.protobuf.Timestamp timestamp = 1;
+
+        // 出力した数値データを集計する時間幅を指定します
+        // "5minutes", "hourly", "daily" の中から一つ以上指定できます。
+        repeated string units = 2;
+
+        // 時系列上の値で、ラベル (16文字以内の文字列) => 4バイト浮動小数点数 のマップです。
+        // 要素数の上限が、契約プランによって設けられる場合があります。
+        map<string, float> metrics = 3;
+    }
+
+    // イベント
+
+    // 特定の条件を満たした時刻における画像認識（構造および意味の抽出）の結果得られた、ユーザーにとって意味のある情報を表します。
+    // 例）エリア入退場、滞留時間超過、速度超過、固定インターバル、構造生成・消滅時
+
+    // 出力されたイベントは、時刻および付加情報を条件に指定して検索することができます。
+    // type の情報は前方一致検索が可能であり、また、特定の type を持つイベントが登録された際に、
+    // 事前にデバイスオーナーによって定義された通知手段を用いて、デバイスのオーナーに通知を行うこともできます。
+    // labels には、そのイベントを機械的に区別するための文字列（ラベル）を複数付与できる。特定のラベルを持つイベントのみを検索することが可能です。
+    // 一つのイベントには、事前に設定された複数種類のジオメトリの設定（ geometry_config_ids）を関連付けることができ、ジオメトリ設定を指定した検索も可能です。
+    // 検索の必要がないが、イベントに付属させたい情報は、 data にJSON形式で持たせることができます。
+    // また、一つのイベントには、最大一枚の画像を添付できます。
+    message RecordEvent {
+        // timestamp はEventの発生した日時です
+        .google.protobuf.Timestamp timestamp = 1;
+
+        // イベントを一意に特定するために analyzerで生成される 36文字以内の文字列です。
+        // 出力するすべてのイベントにおいてユニークである必要があります。
+        // event_indexが過去のイベントと重複した場合、重複イベントとして扱われるため保存されません。
+        string event_index = 2;
+
+        // イベントの種別を表す文字列で、正規表現 `[a-zA-Z0-9_\-]+(\.[a-zA-Z0-9_\-]+)*` にマッチし、
+        // 32文字以内である必要があります。例 `enter.truck`
+        string type = 3;
+
+        // イベントに関連付けられるラベルのリストです。
+        // 各ラベルは、1文字以上16文字以内で、最大10個まで指定できます。
+        repeated string labels = 4;
+
+        // イベントに付与する数値データです。有効数字6桁までで、6桁より先は四捨五入されます。
+        optional float score = 5;
+
+        // 任意のJSON Objectと互換のオブジェクトです。
+        // サイズ上限はJSONシリアライズした際に1kiBです。
+        optional .google.protobuf.Struct data = 6;
+
+        // イベントに関連するジオメトリ設定IDのリストです。
+        repeated int32 geometry_config_ids = 7;
+
+        // イベントに関連付けられる画像です。
+        optional EventPicture picture = 8;
+    }
+
+
+    // オブジェクト
+
+    // 動画の一連のフレームを画像認識した結果得られた、時空間的な構造を構成する要素を表します。
+    // オブジェクトは、start_timestamp, end_timestamp で定義される時間幅を持ち、その時間幅の中で得られた複数枚の画像を添付できます。
+    // 同一のobject_index を持つオブジェクト情報を出力することで、新しく出力されたオブジェクト情報で古いオブジェクト情報を上書きすることができます。
+    // そのため、例えばオブジェクトのトラッキングが長時間に及ぶ場合であっても、トラッキング途中の暫定情報としてその結果を出力することが可能です。
+
+    // 最終的にトラッキングしていたオブジェクトがフレームアウトするなどして、トラッキングが終了した場合にはend_timestampを指定してオブジェクト情報を出力すると、
+    // そのオブジェクトは確定情報と扱われ、以降更新が発生することはできなくなります。
+
+    // 一つのオブジェクト情報には、data のカラムに収まりきらない追加情報（extra_data）を付与できます。
+    // 例えば、そのオブジェクトをトラッキング中の時間帯における各動画フレームの情報などを想定しています。
+    message RecordObject {
+        // Objectの検出開始時刻です
+        .google.protobuf.Timestamp start_timestamp = 1;
+
+        // Objectの検出終了時刻です。終了時刻が設定されたオブジェクトはそれ以上更新することができません。
+        .google.protobuf.Timestamp end_timestamp = 2;
+
+        // Objectを一意に特定するために analyzerで生成される 36文字以内の文字列です。
+        // 同じobject_indexを指定して出力するとすでに送信済みのオブジェクト情報を上書きできます。
+        string object_index = 3;
+
+        // type はオブジェクト種別を表す文字列で、正規表現 `[a-zA-Z0-9_\-]+(\.[a-zA-Z0-9_\-]+)*` にマッチし、
+        // 32文字以内である必要があります。例 `person.face`
+        string type = 4;
+
+        // オブジェクトを検出していた時間です。単位はミリ秒です。
+        optional int32 duration = 5;
+
+        // オブジェクトに関連付けられるラベルのリストです。
+        // 各ラベルは、1文字以上16文字以内で、最大10個まで指定できます。
+        repeated string labels = 6;
+
+        // オブジェクトに付与する数値データです。有効数字6桁までで、6桁より先は四捨五入されます。
+        optional float score = 7;
+
+        // 任意のJSON Objectと互換のオブジェクトです。
+        // サイズ上限はJSONシリアライズした際に1kiBです。
+        optional .google.protobuf.Struct data = 8;
+
+        // オブジェクトに関連するジオメトリ設定IDのリストです。
+        repeated int32 geometry_config_ids = 9;
+
+        // オブジェクトに関連付けられる画像です。
+        // 画像は最大5枚まで指定できます。
+        repeated ObjectPicture picture = 10;
+
+        // オブジェクトに関連付けられる追加のデータです。
+        optional ObjectExtraData extra_data = 11;
+    }
+
+
+    // デバイスステータス
+
+    // デバイスの現在の状態を表す情報です。（例えば、現在の店舗の混雑状況、現在特定のオブジェクトが写っているか否か、など）
+    // この情報を参照することで、常に最新のデバイスの状態を取得できます。
+    // 最新の更新時刻は記録するが、過去の状態は取得できません。
+
+    // ラベル（label）に任意の文字列を指定でき、このラベルによって区別された複数種類の状態を定義できます。
+    // 同一labelでデータを出力すると新しい値でそのステータス情報は更新されます。
+    // 一つのデバイスには10種類までの状態を保存でき、それ以上の状態を保存しようとすると更新時刻が最も古いレコードが削除され、
+    // 新しい状態が登録されます。
+    message RecordDeviceStatus {
+        // ステータスの更新時刻です
+        .google.protobuf.Timestamp timestamp = 1;
+
+        // デバイスのステータス情報です。最大10個まで指定できます。
+        repeated DeviceStatus device_status = 2;
+    }
+
+
+    message UpdateContext {
+        // context は同一デバイス/契約の解析処理の間で引き継がれる値です。
+        // 値が未設定の場合、値は更新されません。
+        // 値が存在する場合、次回以降のAnalyzerの呼び出しでその値が渡されます。
+        // サイズ上限はJSONシリアライズした際に16kiBです。
+        // 空のStructを指定することで既存のContextを削除できます。
+        .google.protobuf.Struct context = 1;
+    }
+}
+
+// EventPictureは、イベントに付与される画像情報を表します
+message EventPicture {
+    // content_typeはimage/jpegか、image/pngのいずれかを指定します。
+    string content_type = 1;
+
+    // 画像データです。10MBまでの画像を指定できます。
+    bytes data = 2;
+}
+
+// ObjectPictureは、オブジェクトに付与される画像情報を表します
+message ObjectPicture {
+    // オブジェクトに付与された画像の識別子。正規表現 ^[a-zA-Z0-9_\\-]+$ にマッチした16文字以内の文字列を指定できます。
+    string label = 1;
+
+    // content_typeはimage/jpegか、image/pngのいずれかを指定します。
+    string content_type = 2;
+
+    // 画像データです。10MBまでの画像を指定できます。
+    bytes data = 3;
+}
+
+// ObjectExtraDataは、オブジェクトに付与される追加のデータを表します
+message ObjectExtraData {
+    // content_typeは、MIMEタイプ表記で指定します。（例: image/jpeg）
+    string content_type = 1;
+
+    // 追加のデータです。10MBまでのデータを指定できます。
+    bytes data = 2;
+}
+
+// DeviceStatusは、デバイスのステータス情報を表します
+message DeviceStatus {
+    // ステータスの識別子です。
+    // 同じラベルを持つステータスは同一のステータスとして扱われ、上書きされます
+    string label = 1;
+
+    // ステータスを表す文字列です。
+    string status = 2;
+
+    // ステータスを表す数値データです。
+    // 有効数字6桁までで、6桁より先は四捨五入されます。
+    optional float score = 3;
+
+    // ステータスが関連するジオメトリ設定IDのリストです。
+    repeated int32 geometry_config_ids = 4;
+}
