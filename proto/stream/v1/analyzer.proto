@@ -86,6 +86,14 @@ message StreamAnalyzeResponse {
         // 時系列上の値で、ラベル (16文字以内の文字列) => 4バイト浮動小数点数 のマップです。
         // 要素数の上限が、契約プランによって設けられる場合があります。
         map<string, float> metrics = 3;
+
+        // 日次メトリクスの境界を決定するためのタイムゾーンです。
+        // このフィールドは "daily" 単位の集計において、日の境界（0時0分0秒）を
+        // 判定するために使用されます。timestampはUTCで設定し、このdaily_boundary_timezoneで
+        // 指定されたタイムゾーンにおける日の境界で日次データが分割されます。
+        // デフォルト: UTC
+        // 参照: https://timeapi.io/documentation/iana-timezones#
+        optional string daily_boundary_timezone = 4;
     }
 
     // イベント

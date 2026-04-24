@@ -1,9 +1,20 @@
 from datetime import datetime
 from typing import Annotated, Any, Literal
+from zoneinfo import ZoneInfo
 
 import annotated_types
 from google.protobuf import json_format
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import AfterValidator, BaseModel, Field, StringConstraints
+
+
+def _timezone_validator(v: str | None) -> str | None:
+    if v is None:
+        return None
+    try:
+        ZoneInfo(v)
+    except Exception:
+        raise ValueError("The timezone is invalid")
+    return v
 
 
 class Event(BaseModel):
@@ -79,6 +90,11 @@ class Metric(BaseModel):
         Field(),
     ]
     value: float = Field()
+    daily_boundary_timezone: Annotated[
+        str | None,
+        AfterValidator(_timezone_validator),
+        Field(None),
+    ]
 
 
 class DeviceStatus(BaseModel):
@@ -128,6 +144,7 @@ def validate_metrics(metrics: dict[str, Any]) -> list[Metric]:
             units=metrics.get("units"),
             label=key,
             value=metrics.get("metrics", {}).get(key),
+            daily_boundary_timezone=metrics.get("daily_boundary_timezone"),
         )
         metrics_list.append(m)
     return metrics_list
