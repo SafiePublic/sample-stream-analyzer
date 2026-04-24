@@ -119,6 +119,15 @@ class StreamAnalyzeResponse(_message.Message):
         TIMESTAMP_FIELD_NUMBER: _builtins.int
         UNITS_FIELD_NUMBER: _builtins.int
         METRICS_FIELD_NUMBER: _builtins.int
+        DAILY_BOUNDARY_TIMEZONE_FIELD_NUMBER: _builtins.int
+        daily_boundary_timezone: _builtins.str
+        """日次メトリクスの境界を決定するためのタイムゾーンです。
+        このフィールドは "daily" 単位の集計において、日の境界（0時0分0秒）を
+        判定するために使用されます。timestampはUTCで設定し、このdaily_boundary_timezoneで
+        指定されたタイムゾーンにおける日の境界で日次データが分割されます。
+        デフォルト: UTC
+        参照: https://timeapi.io/documentation/iana-timezones#
+        """
         @_builtins.property
         def timestamp(self) -> _timestamp_pb2.Timestamp:
             """このデータが取得された時刻です"""
@@ -141,11 +150,15 @@ class StreamAnalyzeResponse(_message.Message):
             timestamp: _timestamp_pb2.Timestamp | None = ...,
             units: _abc.Iterable[_builtins.str] | None = ...,
             metrics: _abc.Mapping[_builtins.str, _builtins.float] | None = ...,
+            daily_boundary_timezone: _builtins.str | None = ...,
         ) -> None: ...
-        _HasFieldArgType: _TypeAlias = _typing.Literal["timestamp", b"timestamp"]  # noqa: Y015
+        _HasFieldArgType: _TypeAlias = _typing.Literal["_daily_boundary_timezone", b"_daily_boundary_timezone", "daily_boundary_timezone", b"daily_boundary_timezone", "timestamp", b"timestamp"]  # noqa: Y015
         def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-        _ClearFieldArgType: _TypeAlias = _typing.Literal["metrics", b"metrics", "timestamp", b"timestamp", "units", b"units"]  # noqa: Y015
+        _ClearFieldArgType: _TypeAlias = _typing.Literal["_daily_boundary_timezone", b"_daily_boundary_timezone", "daily_boundary_timezone", b"daily_boundary_timezone", "metrics", b"metrics", "timestamp", b"timestamp", "units", b"units"]  # noqa: Y015
         def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        _WhichOneofReturnType__daily_boundary_timezone: _TypeAlias = _typing.Literal["daily_boundary_timezone"]  # noqa: Y015
+        _WhichOneofArgType__daily_boundary_timezone: _TypeAlias = _typing.Literal["_daily_boundary_timezone", b"_daily_boundary_timezone"]  # noqa: Y015
+        def WhichOneof(self, oneof_group: _WhichOneofArgType__daily_boundary_timezone) -> _WhichOneofReturnType__daily_boundary_timezone | None: ...
 
     @_typing.final
     class RecordEvent(_message.Message):

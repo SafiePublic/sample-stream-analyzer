@@ -93,6 +93,7 @@ def create_metrics_response(result: FrameAnalyzerResult) -> StreamAnalyzeRespons
                 "person": 1 if result.is_keyframe else 0,
                 "random": random.random(),
             },
+            daily_boundary_timezone="Asia/Tokyo",
         )
     )
 

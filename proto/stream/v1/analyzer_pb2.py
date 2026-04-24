@@ -26,7 +26,7 @@ from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1eproto/stream/v1/analyzer.proto\x12\x18safie.analyzer.stream.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xaa\x01\n\x14StreamAnalyzeRequest\x12N\n\x0bmedia_frame\x18\x01 \x01(\x0b\x32\x39.safie.analyzer.stream.v1.StreamAnalyzeRequest.MediaFrame\x1a\x42\n\nMediaFrame\x12\x0b\n\x03pts\x18\x01 \x01(\x04\x12\x0b\n\x03\x64ts\x18\x02 \x01(\x04\x12\x0c\n\x04type\x18\x03 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\"\xfb\x0c\n\x15StreamAnalyzeResponse\x12W\n\x0erecord_metrics\x18\x01 \x01(\x0b\x32=.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordMetricsH\x00\x12S\n\x0crecord_event\x18\x02 \x01(\x0b\x32;.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordEventH\x00\x12U\n\rrecord_object\x18\x03 \x01(\x0b\x32<.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordObjectH\x00\x12\x62\n\x14record_device_status\x18\x04 \x01(\x0b\x32\x42.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordDeviceStatusH\x00\x12W\n\x0eupdate_context\x18\x05 \x01(\x0b\x32=.safie.analyzer.stream.v1.StreamAnalyzeResponse.UpdateContextH\x00\x1a\xda\x01\n\rRecordMetrics\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\r\n\x05units\x18\x02 \x03(\t\x12[\n\x07metrics\x18\x03 \x03(\x0b\x32J.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordMetrics.MetricsEntry\x1a.\n\x0cMetricsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x1a\xa9\x02\n\x0bRecordEvent\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x13\n\x0b\x65vent_index\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x0e\n\x06labels\x18\x04 \x03(\t\x12\x12\n\x05score\x18\x05 \x01(\x02H\x00\x88\x01\x01\x12*\n\x04\x64\x61ta\x18\x06 \x01(\x0b\x32\x17.google.protobuf.StructH\x01\x88\x01\x01\x12\x1b\n\x13geometry_config_ids\x18\x07 \x03(\x05\x12<\n\x07picture\x18\x08 \x01(\x0b\x32&.safie.analyzer.stream.v1.EventPictureH\x02\x88\x01\x01\x42\x08\n\x06_scoreB\x07\n\x05_dataB\n\n\x08_picture\x1a\xcb\x03\n\x0cRecordObject\x12\x33\n\x0fstart_timestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x31\n\rend_timestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x14\n\x0cobject_index\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12\x15\n\x08\x64uration\x18\x05 \x01(\x05H\x00\x88\x01\x01\x12\x0e\n\x06labels\x18\x06 \x03(\t\x12\x12\n\x05score\x18\x07 \x01(\x02H\x01\x88\x01\x01\x12*\n\x04\x64\x61ta\x18\x08 \x01(\x0b\x32\x17.google.protobuf.StructH\x02\x88\x01\x01\x12\x1b\n\x13geometry_config_ids\x18\t \x03(\x05\x12\x38\n\x07picture\x18\n \x03(\x0b\x32\'.safie.analyzer.stream.v1.ObjectPicture\x12\x42\n\nextra_data\x18\x0b \x01(\x0b\x32).safie.analyzer.stream.v1.ObjectExtraDataH\x03\x88\x01\x01\x42\x0b\n\t_durationB\x08\n\x06_scoreB\x07\n\x05_dataB\r\n\x0b_extra_data\x1a\x82\x01\n\x12RecordDeviceStatus\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12=\n\rdevice_status\x18\x02 \x03(\x0b\x32&.safie.analyzer.stream.v1.DeviceStatus\x1a\x39\n\rUpdateContext\x12(\n\x07\x63ontext\x18\x01 \x01(\x0b\x32\x17.google.protobuf.StructB\t\n\x07payload\"2\n\x0c\x45ventPicture\x12\x14\n\x0c\x63ontent_type\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"B\n\rObjectPicture\x12\r\n\x05label\x18\x01 \x01(\t\x12\x14\n\x0c\x63ontent_type\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\"5\n\x0fObjectExtraData\x12\x14\n\x0c\x63ontent_type\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"h\n\x0c\x44\x65viceStatus\x12\r\n\x05label\x18\x01 \x01(\t\x12\x0e\n\x06status\x18\x02 \x01(\t\x12\x12\n\x05score\x18\x03 \x01(\x02H\x00\x88\x01\x01\x12\x1b\n\x13geometry_config_ids\x18\x04 \x03(\x05\x42\x08\n\x06_score2\x8d\x01\n\x15StreamAnalyzerService\x12t\n\rAnalyzeStream\x12..safie.analyzer.stream.v1.StreamAnalyzeRequest\x1a/.safie.analyzer.stream.v1.StreamAnalyzeResponse(\x01\x30\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1eproto/stream/v1/analyzer.proto\x12\x18safie.analyzer.stream.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xaa\x01\n\x14StreamAnalyzeRequest\x12N\n\x0bmedia_frame\x18\x01 \x01(\x0b\x32\x39.safie.analyzer.stream.v1.StreamAnalyzeRequest.MediaFrame\x1a\x42\n\nMediaFrame\x12\x0b\n\x03pts\x18\x01 \x01(\x04\x12\x0b\n\x03\x64ts\x18\x02 \x01(\x04\x12\x0c\n\x04type\x18\x03 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\"\xbd\r\n\x15StreamAnalyzeResponse\x12W\n\x0erecord_metrics\x18\x01 \x01(\x0b\x32=.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordMetricsH\x00\x12S\n\x0crecord_event\x18\x02 \x01(\x0b\x32;.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordEventH\x00\x12U\n\rrecord_object\x18\x03 \x01(\x0b\x32<.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordObjectH\x00\x12\x62\n\x14record_device_status\x18\x04 \x01(\x0b\x32\x42.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordDeviceStatusH\x00\x12W\n\x0eupdate_context\x18\x05 \x01(\x0b\x32=.safie.analyzer.stream.v1.StreamAnalyzeResponse.UpdateContextH\x00\x1a\x9c\x02\n\rRecordMetrics\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\r\n\x05units\x18\x02 \x03(\t\x12[\n\x07metrics\x18\x03 \x03(\x0b\x32J.safie.analyzer.stream.v1.StreamAnalyzeResponse.RecordMetrics.MetricsEntry\x12$\n\x17\x64\x61ily_boundary_timezone\x18\x04 \x01(\tH\x00\x88\x01\x01\x1a.\n\x0cMetricsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x42\x1a\n\x18_daily_boundary_timezone\x1a\xa9\x02\n\x0bRecordEvent\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x13\n\x0b\x65vent_index\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x0e\n\x06labels\x18\x04 \x03(\t\x12\x12\n\x05score\x18\x05 \x01(\x02H\x00\x88\x01\x01\x12*\n\x04\x64\x61ta\x18\x06 \x01(\x0b\x32\x17.google.protobuf.StructH\x01\x88\x01\x01\x12\x1b\n\x13geometry_config_ids\x18\x07 \x03(\x05\x12<\n\x07picture\x18\x08 \x01(\x0b\x32&.safie.analyzer.stream.v1.EventPictureH\x02\x88\x01\x01\x42\x08\n\x06_scoreB\x07\n\x05_dataB\n\n\x08_picture\x1a\xcb\x03\n\x0cRecordObject\x12\x33\n\x0fstart_timestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x31\n\rend_timestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x14\n\x0cobject_index\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12\x15\n\x08\x64uration\x18\x05 \x01(\x05H\x00\x88\x01\x01\x12\x0e\n\x06labels\x18\x06 \x03(\t\x12\x12\n\x05score\x18\x07 \x01(\x02H\x01\x88\x01\x01\x12*\n\x04\x64\x61ta\x18\x08 \x01(\x0b\x32\x17.google.protobuf.StructH\x02\x88\x01\x01\x12\x1b\n\x13geometry_config_ids\x18\t \x03(\x05\x12\x38\n\x07picture\x18\n \x03(\x0b\x32\'.safie.analyzer.stream.v1.ObjectPicture\x12\x42\n\nextra_data\x18\x0b \x01(\x0b\x32).safie.analyzer.stream.v1.ObjectExtraDataH\x03\x88\x01\x01\x42\x0b\n\t_durationB\x08\n\x06_scoreB\x07\n\x05_dataB\r\n\x0b_extra_data\x1a\x82\x01\n\x12RecordDeviceStatus\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12=\n\rdevice_status\x18\x02 \x03(\x0b\x32&.safie.analyzer.stream.v1.DeviceStatus\x1a\x39\n\rUpdateContext\x12(\n\x07\x63ontext\x18\x01 \x01(\x0b\x32\x17.google.protobuf.StructB\t\n\x07payload\"2\n\x0c\x45ventPicture\x12\x14\n\x0c\x63ontent_type\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"B\n\rObjectPicture\x12\r\n\x05label\x18\x01 \x01(\t\x12\x14\n\x0c\x63ontent_type\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\"5\n\x0fObjectExtraData\x12\x14\n\x0c\x63ontent_type\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"h\n\x0c\x44\x65viceStatus\x12\r\n\x05label\x18\x01 \x01(\t\x12\x0e\n\x06status\x18\x02 \x01(\t\x12\x12\n\x05score\x18\x03 \x01(\x02H\x00\x88\x01\x01\x12\x1b\n\x13geometry_config_ids\x18\x04 \x03(\x05\x42\x08\n\x06_score2\x8d\x01\n\x15StreamAnalyzerService\x12t\n\rAnalyzeStream\x12..safie.analyzer.stream.v1.StreamAnalyzeRequest\x1a/.safie.analyzer.stream.v1.StreamAnalyzeResponse(\x01\x30\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -40,27 +40,27 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_STREAMANALYZEREQUEST_MEDIAFRAME']._serialized_start=228
   _globals['_STREAMANALYZEREQUEST_MEDIAFRAME']._serialized_end=294
   _globals['_STREAMANALYZERESPONSE']._serialized_start=297
-  _globals['_STREAMANALYZERESPONSE']._serialized_end=1956
+  _globals['_STREAMANALYZERESPONSE']._serialized_end=2022
   _globals['_STREAMANALYZERESPONSE_RECORDMETRICS']._serialized_start=773
-  _globals['_STREAMANALYZERESPONSE_RECORDMETRICS']._serialized_end=991
-  _globals['_STREAMANALYZERESPONSE_RECORDMETRICS_METRICSENTRY']._serialized_start=945
-  _globals['_STREAMANALYZERESPONSE_RECORDMETRICS_METRICSENTRY']._serialized_end=991
-  _globals['_STREAMANALYZERESPONSE_RECORDEVENT']._serialized_start=994
-  _globals['_STREAMANALYZERESPONSE_RECORDEVENT']._serialized_end=1291
-  _globals['_STREAMANALYZERESPONSE_RECORDOBJECT']._serialized_start=1294
-  _globals['_STREAMANALYZERESPONSE_RECORDOBJECT']._serialized_end=1753
-  _globals['_STREAMANALYZERESPONSE_RECORDDEVICESTATUS']._serialized_start=1756
-  _globals['_STREAMANALYZERESPONSE_RECORDDEVICESTATUS']._serialized_end=1886
-  _globals['_STREAMANALYZERESPONSE_UPDATECONTEXT']._serialized_start=1888
-  _globals['_STREAMANALYZERESPONSE_UPDATECONTEXT']._serialized_end=1945
-  _globals['_EVENTPICTURE']._serialized_start=1958
-  _globals['_EVENTPICTURE']._serialized_end=2008
-  _globals['_OBJECTPICTURE']._serialized_start=2010
-  _globals['_OBJECTPICTURE']._serialized_end=2076
-  _globals['_OBJECTEXTRADATA']._serialized_start=2078
-  _globals['_OBJECTEXTRADATA']._serialized_end=2131
-  _globals['_DEVICESTATUS']._serialized_start=2133
-  _globals['_DEVICESTATUS']._serialized_end=2237
-  _globals['_STREAMANALYZERSERVICE']._serialized_start=2240
-  _globals['_STREAMANALYZERSERVICE']._serialized_end=2381
+  _globals['_STREAMANALYZERESPONSE_RECORDMETRICS']._serialized_end=1057
+  _globals['_STREAMANALYZERESPONSE_RECORDMETRICS_METRICSENTRY']._serialized_start=983
+  _globals['_STREAMANALYZERESPONSE_RECORDMETRICS_METRICSENTRY']._serialized_end=1029
+  _globals['_STREAMANALYZERESPONSE_RECORDEVENT']._serialized_start=1060
+  _globals['_STREAMANALYZERESPONSE_RECORDEVENT']._serialized_end=1357
+  _globals['_STREAMANALYZERESPONSE_RECORDOBJECT']._serialized_start=1360
+  _globals['_STREAMANALYZERESPONSE_RECORDOBJECT']._serialized_end=1819
+  _globals['_STREAMANALYZERESPONSE_RECORDDEVICESTATUS']._serialized_start=1822
+  _globals['_STREAMANALYZERESPONSE_RECORDDEVICESTATUS']._serialized_end=1952
+  _globals['_STREAMANALYZERESPONSE_UPDATECONTEXT']._serialized_start=1954
+  _globals['_STREAMANALYZERESPONSE_UPDATECONTEXT']._serialized_end=2011
+  _globals['_EVENTPICTURE']._serialized_start=2024
+  _globals['_EVENTPICTURE']._serialized_end=2074
+  _globals['_OBJECTPICTURE']._serialized_start=2076
+  _globals['_OBJECTPICTURE']._serialized_end=2142
+  _globals['_OBJECTEXTRADATA']._serialized_start=2144
+  _globals['_OBJECTEXTRADATA']._serialized_end=2197
+  _globals['_DEVICESTATUS']._serialized_start=2199
+  _globals['_DEVICESTATUS']._serialized_end=2303
+  _globals['_STREAMANALYZERSERVICE']._serialized_start=2306
+  _globals['_STREAMANALYZERSERVICE']._serialized_end=2447
 # @@protoc_insertion_point(module_scope)

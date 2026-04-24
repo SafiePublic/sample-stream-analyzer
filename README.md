@@ -34,7 +34,7 @@ $ export GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1
 $ uv sync --group dev
 ```
 
-protoファイルに更新がある場合は、以下を実行します。
+protoファイルおよびgrpcio-toolsに更新がある場合は、以下を実行します。
 ```sh
 $ uv run python -m grpc_tools.protoc \
     --proto_path=. \
@@ -67,8 +67,8 @@ $ uv run python -m tools.stream_analyzer_client --in-filename samples/xxxx.mp4 -
 $ uv run python -m tools.stream_analyzer_client --in-filename samples/xxxx.mp4 --user-config samples/user_config.json --developer-config samples/developer_config.json --geometry-config samples/geometry_config.json
 ```
 
-特定の`context`を指定して動作を確認する場合は、以下のように`--context`オプションを指定します。  
-user_configやdeveloper_configを更新するとセッションが再接続されるため、引き継ぎたい情報があればデバイスコンテキストで出力すれば次のセッションでも情報が引き継がれます。  
+特定の`context`を指定して動作を確認する場合は、以下のように`--context`オプションを指定します。
+user_configやdeveloper_configを更新するとセッションが再接続されるため、引き継ぎたい情報があればデバイスコンテキストで出力すれば次のセッションでも情報が引き継がれます。
 この引き継がれる情報(最後の通知時間など)を`--context`に設定します。
 ```sh
 $ uv run python -m tools.stream_analyzer_client --in-filename samples/xxxx.mp4 --context samples/context.json

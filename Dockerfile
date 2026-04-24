@@ -1,6 +1,6 @@
 # 注）利用するインスタンスタイプに合わせてplatformを指定します。
 ARG BUILDPLATFORM=linux/amd64
-FROM --platform=${BUILDPLATFORM} public.ecr.aws/docker/library/ubuntu:jammy-20251013
+FROM --platform=${BUILDPLATFORM} public.ecr.aws/docker/library/ubuntu:jammy-20260410
 
 RUN \
   rm -f /etc/apt/apt.conf.d/docker-clean; \
