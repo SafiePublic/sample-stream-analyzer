@@ -4,14 +4,14 @@ authors = [
 ]
 requires-python = "<4.0,>=3.12"
 dependencies = [
-    "av==17.0.0",
-    "click==8.3.2",
-    "grpcio==1.80.0",
-    "mypy-protobuf==5.0.0",
-    "numpy==2.4.4",
-    "pillow==12.1.1",
+    "av==18.1.0",
+    "click==8.5.0",
+    "grpcio==1.83.0",
+    "mypy-protobuf==5.1.0",
+    "numpy==2.5.2",
+    "pillow==12.3.0",
     "protobuf==6.33.5",
-    "pydantic==2.13.1",
+    "pydantic==2.13.4",
 ]
 name = "aipf-sample-stream-analyzer"
 version = "0.1.0"
@@ -21,8 +21,8 @@ package-mode = false
 
 [dependency-groups]
 dev = [
-    "grpcio-tools==1.80.0",
-    "ruff==0.15.10",
+    "grpcio-tools==1.81.1",
+    "ruff==0.16.4",
 ]
 
 [tool.ruff]
