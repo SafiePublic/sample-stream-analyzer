@@ -3,9 +3,9 @@
 import grpc
 import warnings
 
-from proto.stream.v1 import analyzer_pb2 as proto_dot_stream_dot_v1_dot_analyzer__pb2
+from analyzer.proto.stream.v1 import analyzer_pb2 as analyzer_dot_proto_dot_stream_dot_v1_dot_analyzer__pb2
 
-GRPC_GENERATED_VERSION = '1.80.0'
+GRPC_GENERATED_VERSION = '1.81.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -18,14 +18,14 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in proto/stream/v1/analyzer_pb2_grpc.py depends on'
+        + ' but the generated code in analyzer/proto/stream/v1/analyzer_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
 
 
-class StreamAnalyzerServiceStub(object):
+class StreamAnalyzerServiceStub:
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -36,12 +36,12 @@ class StreamAnalyzerServiceStub(object):
         """
         self.AnalyzeStream = channel.stream_stream(
                 '/safie.analyzer.stream.v1.StreamAnalyzerService/AnalyzeStream',
-                request_serializer=proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeRequest.SerializeToString,
-                response_deserializer=proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeResponse.FromString,
+                request_serializer=analyzer_dot_proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeRequest.SerializeToString,
+                response_deserializer=analyzer_dot_proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeResponse.FromString,
                 _registered_method=True)
 
 
-class StreamAnalyzerServiceServicer(object):
+class StreamAnalyzerServiceServicer:
     """Missing associated documentation comment in .proto file."""
 
     def AnalyzeStream(self, request_iterator, context):
@@ -73,8 +73,8 @@ def add_StreamAnalyzerServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'AnalyzeStream': grpc.stream_stream_rpc_method_handler(
                     servicer.AnalyzeStream,
-                    request_deserializer=proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeRequest.FromString,
-                    response_serializer=proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeResponse.SerializeToString,
+                    request_deserializer=analyzer_dot_proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeRequest.FromString,
+                    response_serializer=analyzer_dot_proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -84,7 +84,7 @@ def add_StreamAnalyzerServiceServicer_to_server(servicer, server):
 
 
  # This class is part of an EXPERIMENTAL API.
-class StreamAnalyzerService(object):
+class StreamAnalyzerService:
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -102,8 +102,8 @@ class StreamAnalyzerService(object):
             request_iterator,
             target,
             '/safie.analyzer.stream.v1.StreamAnalyzerService/AnalyzeStream',
-            proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeRequest.SerializeToString,
-            proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeResponse.FromString,
+            analyzer_dot_proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeRequest.SerializeToString,
+            analyzer_dot_proto_dot_stream_dot_v1_dot_analyzer__pb2.StreamAnalyzeResponse.FromString,
             options,
             channel_credentials,
             insecure,

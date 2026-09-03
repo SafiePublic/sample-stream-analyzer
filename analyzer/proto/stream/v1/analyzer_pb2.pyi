@@ -13,10 +13,10 @@ import builtins as _builtins
 import sys
 import typing as _typing
 
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias as _TypeAlias
+if sys.version_info >= (3, 11):
+    from typing import TypeAlias as _TypeAlias, Never as _Never
 else:
-    from typing_extensions import TypeAlias as _TypeAlias
+    from typing_extensions import TypeAlias as _TypeAlias, Never as _Never
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -62,8 +62,11 @@ class StreamAnalyzeRequest(_message.Message):
             type: _builtins.int = ...,
             data: _builtins.bytes = ...,
         ) -> None: ...
+        _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+        def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
         _ClearFieldArgType: _TypeAlias = _typing.Literal["data", b"data", "dts", b"dts", "pts", b"pts", "type", b"type"]  # noqa: Y015
         def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def WhichOneof(self, oneof_group: _Never) -> None: ...
 
     MEDIA_FRAME_FIELD_NUMBER: _builtins.int
     @_builtins.property
@@ -77,6 +80,7 @@ class StreamAnalyzeRequest(_message.Message):
     def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["media_frame", b"media_frame"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___StreamAnalyzeRequest: _TypeAlias = StreamAnalyzeRequest  # noqa: Y015
 
@@ -113,8 +117,11 @@ class StreamAnalyzeResponse(_message.Message):
                 key: _builtins.str = ...,
                 value: _builtins.float = ...,
             ) -> None: ...
+            _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+            def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
             _ClearFieldArgType: _TypeAlias = _typing.Literal["key", b"key", "value", b"value"]  # noqa: Y015
             def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+            def WhichOneof(self, oneof_group: _Never) -> None: ...
 
         TIMESTAMP_FIELD_NUMBER: _builtins.int
         UNITS_FIELD_NUMBER: _builtins.int
@@ -142,6 +149,7 @@ class StreamAnalyzeResponse(_message.Message):
         def metrics(self) -> _containers.ScalarMap[_builtins.str, _builtins.float]:
             """時系列上の値で、ラベル (16文字以内の文字列) => 4バイト浮動小数点数 のマップです。
             要素数の上限が、契約プランによって設けられる場合があります。
+            一つのRecordMetricsで指定可能なラベル数は最大10です。
             """
 
         def __init__(
@@ -386,6 +394,7 @@ class StreamAnalyzeResponse(_message.Message):
         def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
         _ClearFieldArgType: _TypeAlias = _typing.Literal["device_status", b"device_status", "timestamp", b"timestamp"]  # noqa: Y015
         def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def WhichOneof(self, oneof_group: _Never) -> None: ...
 
     @_typing.final
     class UpdateContext(_message.Message):
@@ -410,6 +419,7 @@ class StreamAnalyzeResponse(_message.Message):
         def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
         _ClearFieldArgType: _TypeAlias = _typing.Literal["context", b"context"]  # noqa: Y015
         def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+        def WhichOneof(self, oneof_group: _Never) -> None: ...
 
     RECORD_METRICS_FIELD_NUMBER: _builtins.int
     RECORD_EVENT_FIELD_NUMBER: _builtins.int
@@ -456,15 +466,20 @@ class EventPicture(_message.Message):
     content_type: _builtins.str
     """content_typeはimage/jpegか、image/pngのいずれかを指定します。"""
     data: _builtins.bytes
-    """画像データです。10MBまでの画像を指定できます。"""
+    """画像データです。一つのgRPCメッセージのサイズ上限が4MBであるため、
+    合計サイズが4MBを超えない範囲で、指定可能です。
+    """
     def __init__(
         self,
         *,
         content_type: _builtins.str = ...,
         data: _builtins.bytes = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["content_type", b"content_type", "data", b"data"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___EventPicture: _TypeAlias = EventPicture  # noqa: Y015
 
@@ -482,7 +497,9 @@ class ObjectPicture(_message.Message):
     content_type: _builtins.str
     """content_typeはimage/jpegか、image/pngのいずれかを指定します。"""
     data: _builtins.bytes
-    """画像データです。10MBまでの画像を指定できます。"""
+    """画像データです。一つのgRPCメッセージのサイズ上限が4MBであるため、
+    合計サイズが4MBを超えない範囲で、指定可能です。
+    """
     def __init__(
         self,
         *,
@@ -490,8 +507,11 @@ class ObjectPicture(_message.Message):
         content_type: _builtins.str = ...,
         data: _builtins.bytes = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["content_type", b"content_type", "data", b"data", "label", b"label"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___ObjectPicture: _TypeAlias = ObjectPicture  # noqa: Y015
 
@@ -506,15 +526,20 @@ class ObjectExtraData(_message.Message):
     content_type: _builtins.str
     """content_typeは、MIMEタイプ表記で指定します。（例: image/jpeg）"""
     data: _builtins.bytes
-    """追加のデータです。10MBまでのデータを指定できます。"""
+    """追加のデータです。一つのgRPCメッセージのサイズ上限が4MBであるため、
+    合計サイズを超えない範囲で、データを出力可能です。
+    """
     def __init__(
         self,
         *,
         content_type: _builtins.str = ...,
         data: _builtins.bytes = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["content_type", b"content_type", "data", b"data"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+    def WhichOneof(self, oneof_group: _Never) -> None: ...
 
 Global___ObjectExtraData: _TypeAlias = ObjectExtraData  # noqa: Y015
 
@@ -530,10 +555,11 @@ class DeviceStatus(_message.Message):
     GEOMETRY_CONFIG_IDS_FIELD_NUMBER: _builtins.int
     label: _builtins.str
     """ステータスの識別子です。
-    同じラベルを持つステータスは同一のステータスとして扱われ、上書きされます
+    同じラベルを持つステータスは同一のステータスとして扱われ、上書きされます。
+    最大16文字です。
     """
     status: _builtins.str
-    """ステータスを表す文字列です。"""
+    """ステータスを表す文字列です。最大16文字です。"""
     score: _builtins.float
     """ステータスを表す数値データです。
     有効数字6桁までで、6桁より先は四捨五入されます。

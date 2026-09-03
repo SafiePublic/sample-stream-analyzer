@@ -3,9 +3,10 @@ import datetime
 import io
 import json
 import logging
+import os
 import random
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Iterator
 
 import av.error
 import av.video.frame
@@ -16,17 +17,19 @@ from google.protobuf.struct_pb2 import Struct
 from google.protobuf.timestamp_pb2 import Timestamp
 from PIL import Image
 
-from proto.stream.v1.analyzer_pb2 import (
+from analyzer.proto.stream.v1.analyzer_pb2 import (
     DeviceStatus,
     EventPicture,
     ObjectPicture,
     StreamAnalyzeRequest,
     StreamAnalyzeResponse,
 )
-from proto.stream.v1.analyzer_pb2_grpc import (
+from analyzer.proto.stream.v1.analyzer_pb2_grpc import (
     StreamAnalyzerServiceServicer,
     add_StreamAnalyzerServiceServicer_to_server,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -129,8 +132,10 @@ class DummyObjectDetector:
     """ダミーの物体検出器"""
 
     def __init__(self, model_path: str) -> None:
-        # NOTE: ここではコンストラクタでモデルをロードする想定でダミーを実装します。
-        logging.info("Loaded dummy object detector model from %s", model_path)
+        # サンプルコードではモデルファイルの存在のみをチェックします
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found: {model_path}")
+        logger.info("Loaded dummy object detector model from %s", model_path)
         # self.model = load_model(model_path)
 
     def detect(self, frame: av.video.frame.VideoFrame) -> list[dict[str, object]]:
@@ -168,6 +173,7 @@ class FrameAnalyzer:
 
     def __init__(
         self,
+        object_detector: DummyObjectDetector,
         device_id: str | bytes | None = None,
         device_context: str | bytes | None = None,
         parameters: str | bytes | None = None,
@@ -176,7 +182,7 @@ class FrameAnalyzer:
         fps: int | None = None,
     ):
         # NOTE: デバイスID、デバイスコンテキスト、パラメータなどを用いて解析処理を変更できます
-        logging.info(
+        logger.info(
             "FrameAnalyzer got device_id=%s, device_context=%s, parameters=%s, frame_width=%s, frame_height=%s, fps=%s",
             device_id,
             device_context,
@@ -186,7 +192,7 @@ class FrameAnalyzer:
             fps,
         )
         self.key_frame_count = 0
-        self.object_detector = DummyObjectDetector("dummy_model_path")
+        self.object_detector = object_detector
         # NOTE: デバイスコンテキストは通知間隔などカメラごとに内部で管理する情報を保持する想定です
         # デバイスコンテキストをcreate_update_context_responseで出力することで、セッションが切り替わっても情報を引き継げます
         self.is_updated_context = False
@@ -195,7 +201,7 @@ class FrameAnalyzer:
             try:
                 self.device_context = json.loads(device_context)
             except json.JSONDecodeError:
-                logging.warning("Failed to parse device_context as JSON.")
+                logger.warning("Failed to parse device_context as JSON.")
         self._user_conf: dict = {}  # ユーザー設定
         self._dev_conf: dict = {}  # デベロッパー設定
         if parameters is not None:
@@ -206,11 +212,11 @@ class FrameAnalyzer:
                 # NOTE: ジオメトリを使う場合
                 # self._geometries: list[dict] = self._user_conf.get("geometries", [])
             except json.JSONDecodeError:
-                logging.warning("Failed to parse parameters as JSON.")
+                logger.warning("Failed to parse parameters as JSON.")
 
     def analyze_frame(self, frame: av.video.frame.VideoFrame) -> FrameAnalyzerResult | None:
         if frame.pict_type == 0:  # Invalid Picture Type
-            logging.debug("skip invalid frame")
+            logger.debug("skip invalid frame")
             return None
 
         # NOTE: このサンプルではキーフレームを100回に1回解析する例ですが、デバイスコンテキストの情報を用いて処理間隔を制御することも可能です。
@@ -231,7 +237,7 @@ class FrameAnalyzer:
         thumbnail_data = FrameAnalyzer.create_thumbnail(frame)
         ts = FrameAnalyzer.extract_timestamp(frame)
         # デバイスコンテキストを更新
-        self.device_context["last_updated_at"] = ts.ToDatetime(tzinfo=datetime.timezone.utc).isoformat()
+        self.device_context["last_updated_at"] = ts.ToDatetime(tzinfo=datetime.UTC).isoformat()
         self.is_updated_context = True
         return FrameAnalyzerResult(
             is_keyframe=frame.key_frame,
@@ -255,7 +261,7 @@ class FrameAnalyzer:
             else:
                 thumb_width = frame.width * thumb_height // frame.height
 
-        logging.debug(
+        logger.debug(
             "Creating thumbnail: original=%dx%d, thumbnail=%dx%d",
             frame.width,
             frame.height,
@@ -273,7 +279,7 @@ class FrameAnalyzer:
     @staticmethod
     def extract_timestamp(frame: av.video.frame.VideoFrame) -> Timestamp:
         ts = Timestamp()
-        ts.FromDatetime(dt=datetime.datetime.fromtimestamp(frame.pts / 90000, tz=datetime.timezone.utc))
+        ts.FromDatetime(dt=datetime.datetime.fromtimestamp(frame.pts / 90000, tz=datetime.UTC))
         return ts
 
 
@@ -297,11 +303,13 @@ class VideoDecoder:
         try:
             for frame in self.vcodec.decode(p):
                 if frame is not None:
-                    pts_datetime = datetime.datetime.fromtimestamp(request.media_frame.pts / 90000)
-                    logging.debug(
+                    pts_datetime = datetime.datetime.fromtimestamp(
+                        request.media_frame.pts / 90000, tz=datetime.UTC
+                    )
+                    logger.debug(
                         "pts=%s, now=%s, frame width=%s height=%s format=%s pict_type=%s",
                         pts_datetime,
-                        datetime.datetime.now(),
+                        datetime.datetime.now(tz=datetime.UTC),
                         frame.width,
                         frame.height,
                         frame.format,
@@ -309,7 +317,7 @@ class VideoDecoder:
                     )
                     return frame  # パケットには単一のフレームが含まれる
         except av.error.InvalidDataError:
-            logging.warning("Invalid video packet data, skipping packet")
+            logger.warning("Invalid video packet data, skipping packet")
             return None
 
         return None
@@ -322,10 +330,14 @@ class VideoDecoder:
 class _StreamAnalyzer(StreamAnalyzerServiceServicer):
     """動画ストリーム解析を行います。"""
 
+    def __init__(self):
+        model_path = "/app/models/dummy_model.pt"
+        self.object_detector = DummyObjectDetector(model_path)
+
     def AnalyzeStream(
         self, request_iterator: Iterator[StreamAnalyzeRequest], context: grpc.ServicerContext
     ) -> Iterator[StreamAnalyzeResponse]:
-        logging.info("accept %s", context.peer())
+        logger.info("accept %s", context.peer())
 
         metadata = dict(context.invocation_metadata())
 
@@ -341,9 +353,11 @@ class _StreamAnalyzer(StreamAnalyzerServiceServicer):
         video_height = int(video_height)
         fps = int(fps)
         # 動画フレーム解析用のオブジェクトを初期化。
-        frame_analyzer = FrameAnalyzer(device_id, device_context, parameters, video_width, video_height, fps)
+        frame_analyzer = FrameAnalyzer(
+            self.object_detector, device_id, device_context, parameters, video_width, video_height, fps
+        )
 
-        logging.info("Start AnalyzeStream request_id=%s", request_id)
+        logger.info("Start AnalyzeStream request_id=%s", request_id)
 
         context.send_initial_metadata((("analyzer_version", "v0.1.0"),))
 
@@ -370,11 +384,14 @@ class _StreamAnalyzer(StreamAnalyzerServiceServicer):
                     yield create_update_context_response(frame_analyzer.device_context)
                     frame_analyzer.is_updated_context = False
 
+        except grpc.RpcError as exc:
+            logger.exception("abort: grpc_status=%s details=%s", exc.code(), exc.details())
+            raise
         except Exception:
-            logging.exception("abort")
+            logger.exception("abort")
             raise
         else:
-            logging.info("close")
+            logger.info("close")
 
 
 @click.command()
@@ -388,7 +405,7 @@ def serve(address):
     add_StreamAnalyzerServiceServicer_to_server(_StreamAnalyzer(), server)
     server.add_insecure_port(address)
     server.start()
-    logging.info("server listening at %s", address)
+    logger.info("server listening at %s", address)
     server.wait_for_termination()
 
 

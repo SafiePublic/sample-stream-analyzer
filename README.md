@@ -3,7 +3,7 @@
 
 ## 解析処理の実装
 
-AIソリューションプラットフォーム上で稼働するAnalyzerはgRPCサーバーとして動作します。
+Safie AI Studio上で稼働するAnalyzerはgRPCサーバーとして動作します。
 開発者は、事前に定義されているプロトコル定義ファイル（.proto）に従って
 AnalyzerのgRPCインターフェースを実装する必要があります。
 
@@ -41,13 +41,23 @@ $ uv run python -m grpc_tools.protoc \
     --python_out=. \
     --grpc_python_out=. \
     --mypy_out=. \
-    proto/stream/v1/analyzer.proto
+    analyzer/proto/stream/v1/analyzer.proto
 ```
 
 ### Analyzerの起動
-Analyzerをローカル環境で起動します。
+Analyzerをローカル環境で起動します。まず、Dockerイメージ（ランタイム）をビルドします。
+
 ```sh
-$ uv run python -m analyzer.main
+$ docker build -t sample-stream-analyzer-runtime .
+```
+
+ランタイムを起動します。起動時にアプリケーションコード（`analyzer`ディレクトリ）およびモデルファイル（`models`ディレクトリ）をマウントします。
+
+```sh
+$ docker run --rm -p 50051:50051 \
+    -v "$(pwd)/analyzer:/app/analyzer" \
+    -v "$(pwd)/models:/app/models" \
+    sample-stream-analyzer-runtime
 server listening at [::]:50051
 ```
 
@@ -74,16 +84,28 @@ user_configやdeveloper_configを更新するとセッションが再接続さ�
 $ uv run python -m tools.stream_analyzer_client --in-filename samples/xxxx.mp4 --context samples/context.json
 ```
 
-
-### Dockerイメージファイルの作成
-AIソリューションプラットフォーム上にAnalyzerを登録するためには、実装したAnalyzerをtar.gz形式のDockerイメージファイルを作成する必要があります。Dockerイメージファイルは以下のように作成します。
+### Dockerイメージファイル（ランタイム）の作成
+tar.gz形式のDockerイメージファイル（ランタイム）を作成します。ランタイムは以下のように作成します。
 ```sh
-$ docker build -t sample-stream-analyzer .
-$ docker save sample-stream-analyzer | gzip > sample-stream-analyzer.tar.gz
+$ docker build -t sample-stream-analyzer-runtime .
+$ docker save sample-stream-analyzer-runtime | gzip > sample-stream-analyzer-runtime.tar.gz
 ```
 
-正常終了すると、`sample-stream-analyzer.tar.gz`という名前でDockerイメージファイルが生成されます。この生成されたtar.gz形式ファイルをAIソリューションプラットフォーム上に登録します。
+正常終了すると、`sample-stream-analyzer-runtime.tar.gz`という名前でDockerイメージファイルが生成されます。この生成されたtar.gz形式ファイルをSafie AI StudioのUI上からランタイムとして登録します。
 
+### マウントファイルの作成
+ランタイムの起動時に特定のpathにマウントするファイル群（ディレクトリ）をそれぞれzip形式で作成します。
+`analyzer`, `models`のディレクトリ自体を含めないように、ディレクトリ内のファイル・ディレクトリのみを含めるようにします。
+
+```sh
+$ cd analyzer && zip -r ../analyzer.zip . -x "*__pycache__*" && cd ../
+$ cd models && zip -r ../models.zip . && cd ../
+```
+
+作成したzipファイルをSafie AI StudioのUI上から登録します。マウントパスは以下のように指定します。
+
+- analyzer.zip -> `/app/analyzer/`
+- models.zip -> `/app/models/`
 
 ### formatterの適用
 ruffを使用したフォーマットのチェックと適用を行います

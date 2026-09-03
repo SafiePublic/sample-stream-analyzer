@@ -13,8 +13,8 @@ import click
 import grpc
 from google.protobuf.json_format import MessageToDict
 
-from proto.stream.v1.analyzer_pb2 import StreamAnalyzeRequest
-from proto.stream.v1.analyzer_pb2_grpc import StreamAnalyzerServiceStub
+from analyzer.proto.stream.v1.analyzer_pb2 import StreamAnalyzeRequest
+from analyzer.proto.stream.v1.analyzer_pb2_grpc import StreamAnalyzerServiceStub
 from tools.validator import (
     validate_context,
     validate_device_status,
@@ -22,6 +22,8 @@ from tools.validator import (
     validate_metrics,
     validate_object,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @click.command()
@@ -72,7 +74,7 @@ def client(
     address,
     re,
 ):
-    """Safie AIソリューションプラットフォームのストリームAnalyzerに対して指定された動画データを送信します。
+    """Safie AI Studioの動画解析のAnalyzerに対して指定された動画データを送信します。
     ファイルはひとつのH.264動画ストリームおよび任意のAAC音声ストリームから構成される必要があります。
     """
     # 指定がない場合サンプル動画ファイルを使用
@@ -110,12 +112,12 @@ def client(
         with av.open(in_filename) as c:
             fps = c.streams.video[0].base_rate
             if fps is None:
-                logging.warning("Input video frame rate is not detected. assuming 24fps.")
+                logger.warning("Input video frame rate is not detected. assuming 24fps.")
                 return Fraction(24, 1)
             return fps
 
     fps = get_frame_rate()
-    logging.info(f"Input video frame rate: {fps}")
+    logger.info("Input video frame rate: %s", fps)
 
     # 動画ファイルからパケットを取得
     def read_packets():
@@ -151,8 +153,7 @@ def client(
                 codec = av.CodecContext.create("h264", "r")
                 while True:
                     chunk = fp.read(4 * 1024)
-                    for p in codec.parse(chunk):
-                        yield p
+                    yield from codec.parse(chunk)
                     if not chunk:
                         break
 
@@ -201,7 +202,7 @@ def client(
 
     # gRPC接続
     with grpc.insecure_channel(address) as channel:
-        logging.info("Connected")
+        logger.info("Connected")
         metadata = [
             ("request_id", "sample-request"),
             ("device_id", device_id),
@@ -221,7 +222,7 @@ def client(
             stub = StreamAnalyzerServiceStub(channel)
             # パケットを送信
             r_it = stub.AnalyzeStream(it(), metadata=metadata)
-            logging.info("Initial metadata: %s", r_it.initial_metadata())
+            logger.info("Initial metadata: %s", r_it.initial_metadata())
 
             for r in r_it:
                 # レスポンスの処理
@@ -229,36 +230,39 @@ def client(
                     metrics = validate_metrics(
                         MessageToDict(r.record_metrics, preserving_proto_field_name=True)
                     )
-                    logging.info("  metrics: %s", [m.model_dump() for m in metrics])
+                    logger.info("  metrics: %s", [m.model_dump() for m in metrics])
 
                 elif r.HasField("record_event"):
                     event = validate_event(MessageToDict(r.record_event, preserving_proto_field_name=True))
-                    logging.info("  event: %s", event.model_dump())
+                    logger.info("  event: %s", event.model_dump())
 
                 elif r.HasField("record_object"):
                     object = validate_object(MessageToDict(r.record_object, preserving_proto_field_name=True))
-                    logging.info("  object: %s", object.model_dump())
+                    logger.info("  object: %s", object.model_dump())
 
                 elif r.HasField("record_device_status"):
                     device_status = validate_device_status(
                         MessageToDict(r.record_device_status, preserving_proto_field_name=True)
                     )
-                    logging.info(
+                    logger.info(
                         "  device status: %s",
                         [d.model_dump() for d in device_status],
                     )
                 elif r.HasField("update_context"):
                     validate_context(r.update_context)
-                    logging.info(
+                    logger.info(
                         "  update context: %s",
                         MessageToDict(r.update_context, preserving_proto_field_name=True),
                     )
 
+        except grpc.RpcError as exc:
+            logger.exception("Aborted: grpc_status=%s details=%s", exc.code(), exc.details())
+            raise
         except Exception:
-            logging.exception("Aborted")
+            logger.exception("Aborted")
             raise
         else:
-            logging.info("Closed")
+            logger.info("Closed")
 
 
 if __name__ == "__main__":

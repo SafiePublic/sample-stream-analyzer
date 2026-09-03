@@ -10,10 +10,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
   export DEBIAN_FRONTEND=noninteractive && \
   apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y gnupg curl git && \
-  apt-key adv --keyserver keyserver.ubuntu.com --recv f23c5a6cf475977595c89f51ba6932366a755776 && \
-  echo "deb https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu jammy main" > /etc/apt/sources.list.d/python.list && \
-  echo "deb-src https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu jammy main" >> /etc/apt/sources.list.d/python.list
+  apt-get install -y gnupg curl git
 
 # Install uv
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
@@ -26,8 +23,10 @@ COPY pyproject.toml uv.lock .python-version ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 
-COPY analyzer analyzer
-COPY proto proto
+# コンテナ起動時にマウントして利用するため、ランタイムには含めない
+# ランタイムに含める場合は、コメントアウトを外して利用してください。
+# COPY analyzer analyzer
+# COPY models models
 
 EXPOSE 50051
 CMD ["uv", "run", "python3", "-m", "analyzer.main"]
